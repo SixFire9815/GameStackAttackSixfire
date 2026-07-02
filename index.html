@@ -92,7 +92,6 @@
     <div id="wrapper">
         <button id="ingame-pause-btn" class="pause-btn hidden" onclick="togglePause()">⏸</button>
 
-        <!-- POPUP INTERNO PARA REEMPLAZAR LOS ALERT NATIVOS -->
         <div id="custom-popup" class="hidden">
             <div id="popup-box" class="popup-box error">
                 <h3 id="popup-title">ALERTA</h3>
@@ -101,10 +100,7 @@
             </div>
         </div>
 
-        <!-- AUTH SCREEN (Login / Registro / Olvido) -->
         <div id="auth-screen" class="screen">
-            
-            <!-- Bloque de Inicio de Sesión -->
             <div id="login-block" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
                 <h2 style="color: #32b4ff;">INICIAR SESIÓN</h2>
                 <p>Juega para guardar tu progreso</p>
@@ -117,7 +113,6 @@
                 <button class="text-btn" onclick="toggleAuthView('register')" style="color:#a29bfe;">No tengo cuenta. Crear una nueva.</button>
             </div>
 
-            <!-- Bloque de Registro -->
             <div id="register-block" class="hidden" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
                 <h2 style="color: #2ed573;">NUEVA CUENTA</h2>
                 <p>Crea tu Nickname único</p>
@@ -130,7 +125,6 @@
                 <button class="text-btn" onclick="toggleAuthView('login')">Ya tengo cuenta. Iniciar sesión.</button>
             </div>
 
-            <!-- Bloque Recuperar Contraseña -->
             <div id="forgot-block" class="hidden" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
                 <h2 style="color: #ffbe43;">RECUPERAR</h2>
                 <p>Te enviaremos un enlace seguro al correo</p>
@@ -161,7 +155,6 @@
             <button id="btn-logout" style="background-color: #ff4757; color: white; padding: 6px 15px; font-size: 11px; margin-top: 15px;">Cerrar Sesión / Salir</button>
         </div>
 
-        <!-- Pantalla Editar Perfil -->
         <div id="profile-menu" class="screen hidden">
             <h2 style="color: #32b4ff;">EDITAR PERFIL</h2>
             <p>Cambia cómo te ven los demás</p>
@@ -235,7 +228,6 @@
     <div class="instructions">← / → : Mover | ↑ : Saltar | <strong>ESPACIO : ¡PODER!</strong> | Esc / P : Pausar</div>
 
     <script>
-        // Función visual para intercambiar menús de login/registro
         function toggleAuthView(view) {
             document.getElementById('login-block').classList.add('hidden');
             document.getElementById('register-block').classList.add('hidden');
@@ -245,7 +237,6 @@
             else if(view === 'forgot') document.getElementById('forgot-block').classList.remove('hidden');
         }
 
-        // LÓGICA DE CONTROL DEL POPUP PERSONALIZADO
         function showPopup(message, type = "error") {
             const popupElement = document.getElementById('custom-popup');
             const boxElement = document.getElementById('popup-box');
@@ -255,7 +246,6 @@
 
             textElement.textContent = message;
             
-            // Ajustar estilos e identificadores según el tipo de mensaje
             if (type === "success") {
                 boxElement.className = "popup-box success";
                 titleElement.textContent = "¡ÉXITO!";
@@ -268,7 +258,6 @@
 
             popupElement.classList.remove('hidden');
 
-            // Retornar una promesa por si requiere ejecución controlada asíncrona
             return new Promise((resolve) => {
                 const handler = () => {
                     popupElement.classList.add('hidden');
@@ -346,7 +335,6 @@
                 }
             });
 
-            // INICIO DE SESIÓN
             document.getElementById('btn-login').addEventListener('click', async () => {
                 const identifier = document.getElementById('login-identifier').value.trim();
                 const pass = document.getElementById('login-password').value.trim();
@@ -364,7 +352,6 @@
                 } catch(e) { showPopup("Error de Inicio de Sesión: Verifica tus datos."); }
             });
 
-            // REGISTRO CON VALIDACIÓN DE NICKNAME
             document.getElementById('btn-register').addEventListener('click', async () => {
                 const username = document.getElementById('reg-username').value.trim();
                 const email = document.getElementById('reg-email').value.trim();
@@ -389,7 +376,6 @@
                 } catch(e) { showPopup("Error en Registro: " + e.message); }
             });
 
-            // RECUPERAR CONTRASEÑA
             document.getElementById('btn-send-reset').addEventListener('click', async () => {
                 const email = document.getElementById('forgot-email').value.trim();
                 if(!email) return showPopup("Ingresa tu correo electrónico.");
@@ -400,7 +386,6 @@
                 } catch(e) { showPopup("Error: " + e.message); }
             });
 
-            // CAMBIAR NICKNAME DESDE EL MENÚ
             document.getElementById('btn-save-profile').addEventListener('click', async () => {
                 if(window.isGuest) return showPopup("Los invitados no pueden guardar perfiles.");
                 const newUsername = document.getElementById('edit-username-input').value.trim();
@@ -514,7 +499,7 @@
         ];
 
         let currentState = 'AUTH'; let isPaused = false; let lastPauseTime = 0;
-        let grid, player, fallingCrates, hooks, popups = []; 
+        let grid = [], player = { c: Math.floor(COLS / 2), r: ROWS - 1, jumpTimer: 0, lastDir: 1, y: ROWS - 1 }, fallingCrates = [], hooks = [], popups = []; 
         let score = 0, linesCleared = 0, startTime = Date.now(), pauseTimeOffset = 0, timeElapsed = 0, fallSpeed = INITIAL_SPEED, spawnCooldown = 40, coinsEarned = 0, coinTimer = 0;
         let abilityCooldown = 0, speedBoostTimer = 0, hackSlowTimer = 0, leoSlashTimer = 0, slimeAcidTimer = 0, alienTeleportTimer = 0, alienOldPos = {c: 0, r: 0};
 
@@ -602,7 +587,7 @@
         function saveToStorage() { localStorage.setItem('sa_coins', window.coins); localStorage.setItem('sa_active_skin', window.activeSkin); localStorage.setItem('sa_unlocked_skins', JSON.stringify(window.unlockedSkins)); }
 
         function resetGame() {
-            grid = Array.from({ length: ROWS }, () => Array(COLS).fill(0)); player = { c: Math.floor(COLS / 2), r: ROWS - 1, jumpTimer: 0, lastDir: 1 };
+            grid = Array.from({ length: ROWS }, () => Array(COLS).fill(0)); player = { c: Math.floor(COLS / 2), r: ROWS - 1, jumpTimer: 0, lastDir: 1, y: ROWS - 1 };
             fallingCrates = []; hooks = []; popups = []; score = 0; linesCleared = 0; coinsEarned = 0; startTime = Date.now(); pauseTimeOffset = 0; timeElapsed = 0;
             fallSpeed = INITIAL_SPEED; spawnCooldown = 40; coinTimer = 0; isPaused = false; abilityCooldown = 0; speedBoostTimer = 0; hackSlowTimer = 0; leoSlashTimer = 0; slimeAcidTimer = 0; alienTeleportTimer = 0;
             currentBgColor = "#1d1a15"; currentGridColor = "#3a2e2b"; currentFactoryTier = "FÁBRICA EN RUINAS 🏭"; currentState = 'PLAYING';
@@ -611,49 +596,101 @@
         function addScorePopup(c, r) { popups.push({ x: c * CELL_SIZE + CELL_SIZE / 2, y: r * CELL_SIZE + UI_HEIGHT + CELL_SIZE / 2, text: "+100", life: 50, maxLife: 50 }); }
 
         function actionMoveLeft() {
-            if (currentState !== 'PLAYING' || isPaused) return; player.lastDir = -1; let moveAmount = (speedBoostTimer > 0) ? 2 : 1;
+            if (currentState !== 'PLAYING' || isPaused) return; 
+            player.lastDir = -1; 
+            let moveAmount = (speedBoostTimer > 0) ? 2 : 1;
+            
             for(let step=0; step<moveAmount; step++) {
-                if (player.c <= 0) break; let targetC = player.c - 1;
-                if (grid[player.r][targetC] === 1) {
-                    let pushC = targetC - 1; if (pushC >= 0 && grid[player.r][pushC] === 0 && !fallingCrates.some(c => c.c === pushC && c.y > player.r - 1 && c.y < player.r + 1)) { grid[player.r][targetC] = 0; grid[player.r][pushC] = 1; player.c--; } break; 
+                if (player.c <= 0) break; 
+                let targetC = player.c - 1;
+                
+                let rTop = Math.floor(player.y + 0.05);
+                let rBottom = Math.floor(player.y + 0.95);
+                let hitRow = -1;
+                
+                if (rTop >= 0 && rTop < ROWS && grid[rTop][targetC] === 1) hitRow = rTop;
+                else if (rBottom >= 0 && rBottom < ROWS && grid[rBottom][targetC] === 1) hitRow = rBottom;
+                
+                if (hitRow !== -1) {
+                    let isBoxAbove = (hitRow > 0 && grid[hitRow - 1][targetC] === 1) || 
+                                    fallingCrates.some(cr => cr.c === targetC && cr.y >= hitRow - 2 && cr.y < hitRow);
+                    if (isBoxAbove) break;
+
+                    let pushC = targetC - 1; 
+                    if (pushC >= 0 && grid[hitRow][pushC] === 0 && !fallingCrates.some(c => c.c === pushC && c.y > hitRow - 1 && c.y < hitRow + 1)) { 
+                        grid[hitRow][targetC] = 0; 
+                        grid[hitRow][pushC] = 1; 
+                        player.c--; 
+                    } 
+                    break; 
                 }
-                let fInWay = fallingCrates.find(cr => cr.c === targetC && cr.y > player.r - 1 && cr.y < player.r + 1);
+                
+                let fInWay = fallingCrates.find(cr => cr.c === targetC && cr.y > player.y - 0.95 && cr.y < player.y + 0.95);
                 if (fInWay) {
-                    let pushC = targetC - 1; if (pushC >= 0) {
+                    let pushC = targetC - 1; 
+                    if (pushC >= 0) {
                         let floorY = Math.floor(fInWay.y); let ceilY = Math.ceil(fInWay.y); let isClr = true;
                         if (floorY >= 0 && floorY < ROWS && grid[floorY][pushC] === 1) isClr = false;
                         if (ceilY >= 0 && ceilY < ROWS && grid[ceilY][pushC] === 1) isClr = false;
                         if (fallingCrates.some(c => c.c === pushC && Math.abs(c.y - fInWay.y) < 1)) isClr = false;
                         if (isClr) { fInWay.c = pushC; player.c--; }
-                    } break;
-                } player.c--;
+                    } 
+                    break;
+                } 
+                player.c--;
             }
         }
 
         function actionMoveRight() {
-            if (currentState !== 'PLAYING' || isPaused) return; player.lastDir = 1; let moveAmount = (speedBoostTimer > 0) ? 2 : 1;
+            if (currentState !== 'PLAYING' || isPaused) return; 
+            player.lastDir = 1; 
+            let moveAmount = (speedBoostTimer > 0) ? 2 : 1;
+            
             for(let step=0; step<moveAmount; step++) {
-                if (player.c >= COLS - 1) break; let targetC = player.c + 1;
-                if (grid[player.r][targetC] === 1) {
-                    let pushC = targetC + 1; if (pushC < COLS && grid[player.r][pushC] === 0 && !fallingCrates.some(c => c.c === pushC && c.y > player.r - 1 && c.y < player.r + 1)) { grid[player.r][targetC] = 0; grid[player.r][pushC] = 1; player.c++; } break;
+                if (player.c >= COLS - 1) break; 
+                let targetC = player.c + 1;
+                
+                let rTop = Math.floor(player.y + 0.05);
+                let rBottom = Math.floor(player.y + 0.95);
+                let hitRow = -1;
+                
+                if (rTop >= 0 && rTop < ROWS && grid[rTop][targetC] === 1) hitRow = rTop;
+                else if (rBottom >= 0 && rBottom < ROWS && grid[rBottom][targetC] === 1) hitRow = rBottom;
+                
+                if (hitRow !== -1) {
+                    let isBoxAbove = (hitRow > 0 && grid[hitRow - 1][targetC] === 1) || 
+                                    fallingCrates.some(cr => cr.c === targetC && cr.y >= hitRow - 2 && cr.y < hitRow);
+                    if (isBoxAbove) break;
+
+                    let pushC = targetC + 1; 
+                    if (pushC < COLS && grid[hitRow][pushC] === 0 && !fallingCrates.some(c => c.c === pushC && c.y > hitRow - 1 && c.y < hitRow + 1)) { 
+                        grid[hitRow][targetC] = 0; 
+                        grid[hitRow][pushC] = 1; 
+                        player.c++; 
+                    } 
+                    break;
                 }
-                let fInWay = fallingCrates.find(cr => cr.c === targetC && cr.y > player.r - 1 && cr.y < player.r + 1);
+                
+                let fInWay = fallingCrates.find(cr => cr.c === targetC && cr.y > player.y - 0.95 && cr.y < player.y + 0.95);
                 if (fInWay) {
-                    let pushC = targetC + 1; if (pushC < COLS) {
+                    let pushC = targetC + 1; 
+                    if (pushC < COLS) {
                         let floorY = Math.floor(fInWay.y); let ceilY = Math.ceil(fInWay.y); let isClr = true;
                         if (floorY >= 0 && floorY < ROWS && grid[floorY][pushC] === 1) isClr = false;
                         if (ceilY >= 0 && ceilY < ROWS && grid[ceilY][pushC] === 1) isClr = false;
                         if (fallingCrates.some(c => c.c === pushC && Math.abs(c.y - fInWay.y) < 1)) isClr = false;
                         if (isClr) { fInWay.c = pushC; player.c++; }
-                    } break;
-                } player.c++;
+                    } 
+                    break;
+                } 
+                player.c++;
             }
         }
 
         function actionJump() {
             if (currentState !== 'PLAYING' || isPaused) return; let onGround = (player.r === ROWS - 1 || grid[player.r + 1][player.c] === 1);
             let crateAbove = fallingCrates.some(cr => cr.c === player.c && cr.y > player.r - 1.5 && cr.y < player.r);
-            if (onGround && player.r > 0 && grid[player.r - 1][player.c] === 0 && !crateAbove && player.jumpTimer === 0) { player.r--; player.jumpTimer = 15; }
+            if (onGround && player.r > 0 && grid[player.r - 1][player.c] === 0 && !crateAbove && player.jumpTimer === 0) { player.r--; player.y = player.r; player.jumpTimer = 15; }
         }
 
         window.addEventListener("keydown", (e) => {
@@ -674,7 +711,7 @@
         function triggerAbility() {
             if (abilityCooldown > 0 || currentState !== 'PLAYING' || isPaused) return;
             const skin = skinsDatabase.find(s => s.id === window.activeSkin) || skinsDatabase[0]; if (skin.cooldownMax === 0) return; let activated = false;
-            if (skin.id === 'luffy') { let onGround = (player.r === ROWS - 1 || grid[player.r + 1][player.c] === 1); if (onGround && player.r > 1 && grid[player.r - 1][player.c] === 0 && grid[player.r - 2][player.c] === 0) { player.r -= 2; player.jumpTimer = 25; activated = true; } } 
+            if (skin.id === 'luffy') { let onGround = (player.r === ROWS - 1 || grid[player.r + 1][player.c] === 1); if (onGround && player.r > 1 && grid[player.r - 1][player.c] === 0 && grid[player.r - 2][player.c] === 0) { player.r -= 2; player.y = player.r; player.jumpTimer = 25; activated = true; } } 
             else if (skin.id === 'alien') {
                 let safeCols = []; for(let c=0; c<COLS; c++) { if (c !== player.c && grid[player.r][c] === 0 && (player.r === ROWS-1 || grid[player.r+1][c] === 1) && !fallingCrates.some(cr => cr.c === c && cr.y > player.r - 2 && cr.y < player.r)) safeCols.push(c); }
                 if (safeCols.length === 0) { for(let c=0; c<COLS; c++) { if (c !== player.c && grid[player.r][c] === 0 && (player.r === ROWS-1 || grid[player.r+1][c] === 1)) safeCols.push(c); } }
@@ -712,14 +749,26 @@
 
             if (timeElapsed <= 40) { if (hooks.length === 0 && fallingCrates.length === 0) { if (spawnCooldown <= 0) { spawnHook(); spawnCooldown = 90; } else spawnCooldown--; } } else { if (spawnCooldown <= 0) { if (hooks.length < maxHooks) spawnHook(); spawnCooldown = Math.max(50, 140 - (maxHooks * 20)); } else spawnCooldown--; }
 
-            if (player.jumpTimer > 0) player.jumpTimer--; else { if (player.r < ROWS - 1 && grid[player.r + 1][player.c] === 0) player.r++; }
+            if (player.jumpTimer > 0) player.jumpTimer--; 
+            else { 
+                let tileBelow = Math.floor(player.y) + 1;
+                if (tileBelow < ROWS && grid[tileBelow][player.c] === 0) {
+                    player.y += fallSpeed;
+                } else {
+                    if (player.y + fallSpeed >= tileBelow - 1) player.y = tileBelow - 1;
+                    else player.y += fallSpeed;
+                    
+                    if (player.y > tileBelow - 1) player.y = tileBelow - 1;
+                }
+                player.r = Math.floor(player.y + 0.01); 
+            }
 
             for (let r = ROWS - 2; r >= 0; r--) { for (let c = 0; c < COLS; c++) { if (grid[r][c] === 1 && grid[r + 1][c] === 0) { grid[r][c] = 0; fallingCrates.push({ c: c, y: r }); } } }
 
             for (let i = hooks.length - 1; i >= 0; i--) { let hook = hooks[i]; hook.x += hook.dir * 0.08; if (!hook.dropped) { if ((hook.dir === 1 && hook.x >= hook.dropCol) || (hook.dir === -1 && hook.x <= hook.dropCol)) { fallingCrates.push({ c: hook.dropCol, y: -0.5 }); hook.dropped = true; } } if ((hook.dir === 1 && hook.x > COLS) || (hook.dir === -1 && hook.x < -1)) hooks.splice(i, 1); }
 
             for (let i = fallingCrates.length - 1; i >= 0; i--) { let crate = fallingCrates[i]; crate.y += fallSpeed; let nextR = Math.floor(crate.y + 1);
-                if (crate.c === player.c && (crate.y + 1 > player.r) && (crate.y < player.r)) { handleGameOver(); return; }
+                if (crate.c === player.c && (crate.y + 1 > player.y) && (crate.y < player.y)) { handleGameOver(); return; }
                 if (nextR >= ROWS || (nextR >= 0 && grid[nextR][crate.c] === 1)) { let lockY = Math.floor(crate.y); if (lockY < 0) lockY = 0; if (grid[lockY][crate.c] === 0) grid[lockY][crate.c] = 1; fallingCrates.splice(i, 1); }
             }
 
@@ -750,16 +799,16 @@
             for (let r = 0; r < ROWS; r++) { for (let c = 0; c < COLS; c++) { if (grid[r][c] === 1) drawBox(c * CELL_SIZE, r * CELL_SIZE + UI_HEIGHT); } }
             fallingCrates.forEach(cr => { let cy = cr.y * CELL_SIZE + UI_HEIGHT; if (cy > UI_HEIGHT - CELL_SIZE) drawBox(cr.c * CELL_SIZE, cy); });
 
-            if (currentState === 'PLAYING' || currentState === 'GAMEOVER' || currentState === 'SHOP' || isPaused) { let px = player.c * CELL_SIZE + 6; let py = player.r * CELL_SIZE + UI_HEIGHT + 6; drawPlayer(px, py); drawAbilityEffects(); }
+            if (currentState === 'PLAYING' || currentState === 'GAMEOVER' || currentState === 'SHOP' || isPaused) { let px = player.c * CELL_SIZE + 6; let py = (player.y !== undefined ? player.y : player.r) * CELL_SIZE + UI_HEIGHT + 6; drawPlayer(px, py); drawAbilityEffects(); }
 
             popups.forEach(p => { ctx.fillStyle = `rgba(46, 213, 115, ${p.life / p.maxLife})`; ctx.font = "bold 20px Consolas"; ctx.textAlign = "center"; ctx.shadowColor = "rgba(0, 0, 0, 0.7)"; ctx.shadowBlur = 4; ctx.fillText(p.text, p.x, p.y); });
             ctx.textAlign = "left"; ctx.shadowBlur = 0;
         }
 
         function drawAbilityEffects() {
-            if (leoSlashTimer > 0) { ctx.strokeStyle = "rgba(255, 255, 255, 0.9)"; ctx.lineWidth = 4; let tx = player.c * CELL_SIZE; let ty = (player.r - 1) * CELL_SIZE + UI_HEIGHT; for (let k = 6; k <= 26; k += 10) { ctx.beginPath(); ctx.moveTo(tx + k, ty + CELL_SIZE - 4); ctx.lineTo(tx + k + 8, ty + 4); ctx.stroke(); } }
-            if (slimeAcidTimer > 0) { ctx.fillStyle = "#26de81"; let ax = (player.c + player.lastDir) * CELL_SIZE + CELL_SIZE / 2; let ay = player.r * CELL_SIZE + UI_HEIGHT + CELL_SIZE / 2; for (let p = 0; p < 6; p++) { ctx.beginPath(); ctx.arc(ax + (Math.random() - 0.5) * 25, ay + (Math.random() - 0.5) * 25, Math.random() * 4 + 1, 0, Math.PI * 2); ctx.fill(); } }
-            if (alienTeleportTimer > 0) { ctx.lineWidth = 3; ctx.strokeStyle = `rgba(46, 213, 115, ${alienTeleportTimer / 15})`; let ox = alienOldPos.c * CELL_SIZE + CELL_SIZE / 2; let oy = alienOldPos.r * CELL_SIZE + UI_HEIGHT + CELL_SIZE / 2; ctx.beginPath(); ctx.arc(ox, oy, (16 - alienTeleportTimer) * 1.8, 0, Math.PI * 2); ctx.stroke(); ctx.fillStyle = `rgba(255, 255, 255, ${alienTeleportTimer / 15})`; ctx.beginPath(); ctx.arc(player.c * CELL_SIZE + CELL_SIZE / 2, player.r * CELL_SIZE + UI_HEIGHT + CELL_SIZE / 2, alienTeleportTimer * 2, 0, Math.PI * 2); ctx.fill(); }
+            if (leoSlashTimer > 0) { ctx.strokeStyle = "rgba(255, 255, 255, 0.9)"; ctx.lineWidth = 4; let tx = player.c * CELL_SIZE; let ty = (player.y - 1) * CELL_SIZE + UI_HEIGHT; for (let k = 6; k <= 26; k += 10) { ctx.beginPath(); ctx.moveTo(tx + k, ty + CELL_SIZE - 4); ctx.lineTo(tx + k + 8, ty + 4); ctx.stroke(); } }
+            if (slimeAcidTimer > 0) { ctx.fillStyle = "#26de81"; let ax = (player.c + player.lastDir) * CELL_SIZE + CELL_SIZE / 2; let ay = player.y * CELL_SIZE + UI_HEIGHT + CELL_SIZE / 2; for (let p = 0; p < 6; p++) { ctx.beginPath(); ctx.arc(ax + (Math.random() - 0.5) * 25, ay + (Math.random() - 0.5) * 25, Math.random() * 4 + 1, 0, Math.PI * 2); ctx.fill(); } }
+            if (alienTeleportTimer > 0) { ctx.lineWidth = 3; ctx.strokeStyle = `rgba(46, 213, 115, ${alienTeleportTimer / 15})`; let ox = alienOldPos.c * CELL_SIZE + CELL_SIZE / 2; let oy = alienOldPos.r * CELL_SIZE + UI_HEIGHT + CELL_SIZE / 2; ctx.beginPath(); ctx.arc(ox, oy, (16 - alienTeleportTimer) * 1.8, 0, Math.PI * 2); ctx.stroke(); ctx.fillStyle = `rgba(255, 255, 255, ${alienTeleportTimer / 15})`; ctx.beginPath(); ctx.arc(player.c * CELL_SIZE + CELL_SIZE / 2, player.y * CELL_SIZE + UI_HEIGHT + CELL_SIZE / 2, alienTeleportTimer * 2, 0, Math.PI * 2); ctx.fill(); }
         }
 
         function drawBox(x, y) {
