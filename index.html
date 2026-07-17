@@ -168,8 +168,8 @@
             <div class="help-box">
                 <strong style="color: #ffd700;">Objetivo:</strong> Evita que las cajas te aplasten al caer y organízalas formando filas completas de 12 bloques para destruirlas y ganar puntos.<br><br>
                 <strong style="color: #ffd700;">Controles de PC:</strong><br>
-                • Flechas Izquierda / Derecha: Moverse / Empujar cajas libres.<br>
-                • Flecha Arriba: Saltar sobre las cajas.<br>
+                • Flechas Izquierda / Derecha o A / D: Moverse / Empujar cajas libres.<br>
+                • Flecha Arriba o w: Saltar sobre las cajas.<br>
                 • Espacio: Activar habilidad especial de la Skin.<br>
                 • Tecla P / Esc: Pausar el juego.<br><br>
                 <strong style="color: #ffd700;">Controles Móviles:</strong><br>
@@ -554,10 +554,17 @@
             else if (newState === 'SHOP') { renderShop(); document.getElementById('shop-menu').classList.remove('hidden'); }
         }
 
-        function togglePause() {
-            if (currentState !== 'PLAYING' || isPaused) return; isPaused = !isPaused; const pauseMenu = document.getElementById('pause-menu');
-            if (isPaused) { lastPauseTime = Date.now(); pauseMenu.classList.remove('hidden'); }
-            else { pauseTimeOffset += (Date.now() - lastPauseTime); pauseMenu.classList.add('hidden'); }
+       function togglePause() {
+            if (currentState !== 'PLAYING') return; 
+            isPaused = !isPaused; 
+            const pauseMenu = document.getElementById('pause-menu');
+            if (isPaused) { 
+                lastPauseTime = Date.now(); 
+                pauseMenu.classList.remove('hidden'); 
+            } else { 
+                pauseTimeOffset += (Date.now() - lastPauseTime); 
+                pauseMenu.classList.add('hidden'); 
+            }
         }
 
         function renderShop() {
@@ -693,10 +700,23 @@
             if (onGround && player.r > 0 && grid[player.r - 1][player.c] === 0 && !crateAbove && player.jumpTimer === 0) { player.r--; player.y = player.r; player.jumpTimer = 15; }
         }
 
-        window.addEventListener("keydown", (e) => {
-            if (e.key === "Escape" || e.key === "p" || e.key === "P") { if (currentState === 'PLAYING') { togglePause(); e.preventDefault(); } return; }
+       window.addEventListener("keydown", (e) => {
+            const key = e.key.toLowerCase();
+            if (key === "escape" || key === "p" || key === "escape") { 
+                if (currentState === 'PLAYING' || currentState === 'PAUSED') { 
+                    togglePause(); 
+                    e.preventDefault(); 
+                } 
+                return; 
+            }
+            
             if (currentState !== 'PLAYING' || isPaused) return;
-            if (e.key === "ArrowLeft") { actionMoveLeft(); e.preventDefault(); } else if (e.key === "ArrowRight") { actionMoveRight(); e.preventDefault(); } else if (e.key === "ArrowUp") { actionJump(); e.preventDefault(); } else if (e.key === " " || e.code === "Space") { triggerAbility(); e.preventDefault(); }
+            
+            // Controles de movimiento y salto
+            if (key === "arrowleft" || key === "a") { actionMoveLeft(); e.preventDefault(); } 
+            else if (key === "arrowright" || key === "d") { actionMoveRight(); e.preventDefault(); } 
+            else if (key === "arrowup" || key === "w") { actionJump(); e.preventDefault(); } 
+            else if (e.key === " " || e.code === "Space") { triggerAbility(); e.preventDefault(); }
         });
 
         function bindMobileBtn(id, actionFn, allowHold = true) {
