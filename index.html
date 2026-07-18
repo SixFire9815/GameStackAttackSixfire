@@ -769,12 +769,41 @@
             if (activated) abilityCooldown = skin.cooldownMax;
         }
 
+        function getColumnWeights() {
+            let weights = new Array(COLS).fill(1.0); // Por defecto todas tienen peso 1.0 (100% de probabilidad)
+            
+            for (let c = 0; c < COLS; c++) {
+                let count = 0;
+                // Contar cajas en el grid
+                for (let r = 0; r < ROWS; r++) {
+                    if (grid[r][c] === 1) count++;
+                }
+                // Si una columna tiene muchas cajas (ej. más de 6), reducimos su peso drásticamente
+                if (count > 6) weights[c] = 0.1; 
+                else if (count > 4) weights[c] = 0.4;
+            }
+            return weights;
+        }
+
         function spawnHook() { 
             let dir = Math.random() < 0.5 ? 1 : -1; 
             let startX = dir === 1 ? -1.0 : parseFloat(COLS); 
-            let dropCol = Math.floor(Math.random() * COLS); 
             
-            // Ahora el gancho rápido solo tiene oportunidad de aparecer si score > 1500
+            // --- LÓGICA DE PROBABILIDAD ---
+            let weights = getColumnWeights();
+            let totalWeight = weights.reduce((a, b) => a + b, 0);
+            let random = Math.random() * totalWeight;
+            let dropCol = 0;
+            
+            for (let i = 0; i < weights.length; i++) {
+                if (random < weights[i]) {
+                    dropCol = i;
+                    break;
+                }
+                random -= weights[i];
+            }
+            // ------------------------------
+            
             let isFast = (score > 500) && (Math.random() < 0.2); 
             
             hooks.push({ 
@@ -1022,8 +1051,8 @@
         }
 
         let lastTime = 0; const fpsInterval = 1000 / 60;
-        function gameLoop(timestamp) { requestAnimationFrame(gameLoop); let elapsed = timestamp - lastTime; if (elapsed > fpsInterval) { lastTime = timestamp - (elapsed % fpsInterval); update(); draw(); } }
-         // --- Control para evitar que el juego avance en segundo plano ---
+        function gameLoop(timestamp) { requestAnimationFrame(gameLoop); console.log("El bucle está corriendo"); let elapsed = timestamp - lastTime; if (elapsed > fpsInterval) { lastTime = timestamp - (elapsed % fpsInterval); update(); draw(); } }
+        // --- Control para evitar que el juego avance en segundo plano ---
         document.addEventListener("visibilitychange", () => {
             // Si la página se oculta y el juego está corriendo, pausamos
             if (document.hidden) {
