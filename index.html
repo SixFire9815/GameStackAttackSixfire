@@ -151,7 +151,7 @@
             <button onclick="changeState('PLAYING')" style="width: 75%;">Jugar</button>
             <button class="secondary" onclick="changeState('SHOP')" style="width: 75%;">Tienda de Skins</button>
             <button class="secondary" onclick="changeState('RANKING')" style="width: 75%;">Ver Ranking</button> 
-            <!-- <button class="secondary" onclick="changeState('GACHA')" style="width: 75%; background-color: #ffbe43; color: #000;">🎰 Máquina Gacha</button> -->
+            <!-- <button class="secondary" onclick="changeState('GACHA')" style="width: 75%; background-color: #ffbe43; color: #000;">🎰 Máquina Gacha</button>-->
             <button class="secondary" onclick="changeState('HELP')" style="width: 75%; background-color: #2c3a4e;">💡 Cómo Jugar</button>
             
             <button id="btn-logout" style="background-color: #ff4757; color: white; padding: 6px 15px; font-size: 11px; margin-top: 15px;">Cerrar Sesión / Salir</button>
@@ -174,7 +174,7 @@
         </div>
 
         <div id="help-screen" class="screen hidden">
-            <h2 style="color: #32b4ff;">¿CÓMO JUGARR?</h2>
+            <h2 style="color: #32b4ff;">¿CÓMO JUGAR?</h2>
             <div class="help-box">
                 <strong style="color: #ffd700;">Objetivo:</strong> Evita que las cajas te aplasten al caer y organízalas formando filas completas de 12 bloques para destruirlas y ganar puntos.<br><br>
                 <strong style="color: #ffd700;">Controles de PC:</strong><br>
@@ -464,6 +464,10 @@
     </script>
 
     <script>
+        let skillCooldown = 0;      // Tiempo actual (0 significa lista)
+        const MAX_COOLDOWN = 300;   // Tiempo total de espera (en frames o milisegundos)
+        const BAR_WIDTH = 100;      // Ancho total de la barra en píxeles
+        const BAR_HEIGHT = 10;      // Alto de la barra
         const canvas = document.getElementById("gameCanvas"); const ctx = canvas.getContext("2d");
         const COLS = 12; const ROWS = 12; const CELL_SIZE = 40; const UI_HEIGHT = 80;
         const HOOK_COLOR = "#dc3c3c"; const TEXT_COLOR = "#ffffff"; const INITIAL_SPEED = 0.04; const MAX_SPEED = 0.08;     
@@ -784,6 +788,7 @@
         }
 
         function update() {
+            
             if (currentState !== 'PLAYING' || isPaused) return; 
             timeElapsed = Math.floor((Date.now() - startTime - pauseTimeOffset) / 1000);
             if (abilityCooldown > 0) abilityCooldown--; 
@@ -940,10 +945,15 @@
                     drawBox(cr.c * CELL_SIZE, cy, cr.isFast); 
                 }
             });
-            if (currentState === 'PLAYING' || currentState === 'GAMEOVER' || currentState === 'SHOP' || isPaused) { let px = player.c * CELL_SIZE + 6; let py = (player.y !== undefined ? player.y : player.r) * CELL_SIZE + UI_HEIGHT + 6; drawPlayer(px, py); drawAbilityEffects(); }
+            let px = player.c * CELL_SIZE + 6;
+            let py = (player.y !== undefined ? player.y : player.r) * CELL_SIZE + UI_HEIGHT + 6;
+            if (currentState === 'PLAYING' || currentState === 'GAMEOVER' || currentState === 'SHOP' || isPaused) {  px = player.c * CELL_SIZE + 6;  py = (player.y !== undefined ? player.y : player.r) * CELL_SIZE + UI_HEIGHT + 6; drawPlayer(px, py); drawAbilityEffects(); }
 
             popups.forEach(p => { ctx.fillStyle = `rgba(46, 213, 115, ${p.life / p.maxLife})`; ctx.font = "bold 20px Consolas"; ctx.textAlign = "center"; ctx.shadowColor = "rgba(0, 0, 0, 0.7)"; ctx.shadowBlur = 4; ctx.fillText(p.text, p.x, p.y); });
             ctx.textAlign = "left"; ctx.shadowBlur = 0;
+            if (currentState === 'PLAYING') {
+                drawAbilityBar(px, py);
+            }
         }
 
         function drawAbilityEffects() {
@@ -980,9 +990,39 @@
             if (currentSkinData.id === 'luffy' && player.jumpTimer > 0) { ctx.fillStyle = "rgba(255, 192, 203, 0.5)"; for (let s = 0; s < 3; s++) { ctx.beginPath(); ctx.arc(x + Math.random() * size, y + size - (Math.random() * 15), 3, 0, Math.PI * 2); ctx.fill(); } }
             if (currentSkinData.id === 'neon_green' && hackSlowTimer > 0) { ctx.fillStyle = "#10ac84"; ctx.font = "8px monospace"; if (Math.floor(hackSlowTimer / 6) % 2 === 0) { ctx.fillText("1", x - 10, y + 10); ctx.fillText("0", x + size + 4, y + 20); } else { ctx.fillText("0", x - 8, y + 22); ctx.fillText("1", x + size + 5, y + 8); } }
         }
+       function drawAbilityBar(playerX, playerY) {
+            const skin = skinsDatabase.find(s => s.id === window.activeSkin) || skinsDatabase[0];
+            
+            // Verificamos si la habilidad está lista o no tiene cooldown
+            if (skin.cooldownMax === 0 || abilityCooldown === 0) return; 
+
+            // Ajustes para que quepa perfecto en la celda
+            const padding = 4; // Espacio para que no toque los bordes del cuadrado
+            const anchoMaximo = CELL_SIZE - (padding * 2); 
+            const alto = 6;
+            
+            // Centramos la barra respecto a la posición del jugador
+            const x = playerX; 
+            const y = playerY - 10; 
+            
+            // Fondo de la barra
+            ctx.fillStyle = '#232332';
+            ctx.fillRect(x, y, anchoMaximo, alto);
+
+            // Calcular progreso
+            let porcentaje = (skin.cooldownMax - abilityCooldown) / skin.cooldownMax;
+            
+            // Barra de carga
+            ctx.fillStyle = '#32b4ff';
+            ctx.fillRect(x, y, anchoMaximo * porcentaje, alto);
+            
+            // Borde
+            ctx.strokeStyle = '#43435e';
+            ctx.strokeRect(x, y, anchoMaximo, alto);
+        }
 
         let lastTime = 0; const fpsInterval = 1000 / 60;
-        function gameLoop(timestamp) { requestAnimationFrame(gameLoop); let elapsed = timestamp - lastTime; if (elapsed > fpsInterval) { lastTime = timestamp - (elapsed % fpsInterval); update(); draw(); } }
+        function gameLoop(timestamp) { requestAnimationFrame(gameLoop); console.log("El bucle está corriendo"); let elapsed = timestamp - lastTime; if (elapsed > fpsInterval) { lastTime = timestamp - (elapsed % fpsInterval); update(); draw(); } }
         requestAnimationFrame(gameLoop);
     </script>
 </body>
