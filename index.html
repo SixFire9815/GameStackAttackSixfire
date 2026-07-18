@@ -1022,7 +1022,7 @@
         }
 
         let lastTime = 0; const fpsInterval = 1000 / 60;
-        function gameLoop(timestamp) { requestAnimationFrame(gameLoop); console.log("El bucle está corriendo"); let elapsed = timestamp - lastTime; if (elapsed > fpsInterval) { lastTime = timestamp - (elapsed % fpsInterval); update(); draw(); } }
+        function gameLoop(timestamp) { requestAnimationFrame(gameLoop); let elapsed = timestamp - lastTime; if (elapsed > fpsInterval) { lastTime = timestamp - (elapsed % fpsInterval); update(); draw(); } }
         requestAnimationFrame(gameLoop);
     </script>
 </body>
