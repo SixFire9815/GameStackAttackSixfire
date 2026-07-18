@@ -1023,6 +1023,17 @@
 
         let lastTime = 0; const fpsInterval = 1000 / 60;
         function gameLoop(timestamp) { requestAnimationFrame(gameLoop); let elapsed = timestamp - lastTime; if (elapsed > fpsInterval) { lastTime = timestamp - (elapsed % fpsInterval); update(); draw(); } }
+         // --- Control para evitar que el juego avance en segundo plano ---
+        document.addEventListener("visibilitychange", () => {
+            // Si la página se oculta y el juego está corriendo, pausamos
+            if (document.hidden) {
+                if (currentState === 'PLAYING' && !isPaused) {
+                    togglePause();
+                }
+            }
+            // Nota: No lo reanudamos automáticamente al volver, 
+            // es mejor dejar que el usuario presione "Reanudar" para que no se pierda.
+        });
         requestAnimationFrame(gameLoop);
     </script>
 </body>
